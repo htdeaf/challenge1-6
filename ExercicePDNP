@@ -1,0 +1,52 @@
+import pandas as pd
+import numpy as np
+data=pd.read_csv("C:\\Users\\Rehmi Salma\\Documents\\employees.csv")
+print(data.head())
+print(data.dtypes)
+
+manquantes=[data.isnull().any(axis=1)]
+print(manquantes)
+
+data=data.fillna(data.mean(numeric_only=True))
+print(data)
+
+data["Salary"]=data["Salary"].fillna(data.groupby("Department")["Salary"].transform("mean"))
+print(data)
+
+data['Remote']=data['Remote'].map(lambda x:'oui' if x=="yes" else 'non')
+print(data)
+
+def classer_experience(exp):
+    if exp < 3:
+        return "Junior"
+    elif 3 <= exp <= 7:
+        return "Intermédiaire"
+    elif 8 <= exp <= 15:
+        return "Senior"
+    else:
+        return "Expert"
+
+#Appliquer la fonction à chaque ligne
+data[" Ancienneté_Catégorie"] = data["Years_Experience"].apply(classer_experience)
+print(data)
+
+mainsalary=data["Salary"].mean()
+print(mainsalary)
+
+maxsalary=data["Salary"].max()
+print(maxsalary)
+
+data["Salary"]=data["Salary"].fillna(data.groupby(" Ancienneté_Catégorie")["Salary"].transform("mean"))
+print(data["Salary"])
+
+
+nb_remote = data[data["Remote"] == "oui"].groupby("Department")["Name"].count()
+print(nb_remote)
+
+
+table = pd.pivot_table(data, values="Salary", index="Department", columns="Remote",aggfunc="mean",fill_value=0  )
+print(table)
+
+
+
+
