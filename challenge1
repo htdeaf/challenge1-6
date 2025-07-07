@@ -1,0 +1,45 @@
+import pandas as pd
+import numpy as np
+#Crée un DataFrame avec 3 colonnes : Nom, Âge, Ville.
+data=pd.DataFrame({"Nom":["Amine","Lina","Youssef","Salma","Nora"],
+      "Âge": [28,22,35,30,np.nan],
+      "Ville":["Casablanca","Rabat", "Fès","Casablanca","Tanger"]
+
+})
+print(data)
+print(data.head())
+print(data.info())
+print(data.describe())
+print(data["Ville"])
+df=data[data["Âge"]>25]
+print(df)
+print(data[data["Ville"]=="Casablanca"][["Nom","Ville"]])
+
+data["Année de Naissance"] = 2025 - data["Âge"]
+print(data)
+#print(data.str.upper())
+data["Nom"]=data["Nom"].str.upper()
+print(data)
+#["Ville"]="Localisation"
+data = data.rename(columns={"Ville": "Localisation"})
+print(data)
+manquantes=[data.isnull().any(axis=1)]
+print(manquantes)
+data=data.fillna(data.mean(numeric_only=True))
+print(data)
+data=data.sort_values(by='Âge', ascending=False)
+print(data)
+data=data.drop("Année de Naissance",axis=1)
+print(data)
+data=data.drop(index=0)
+print(data)
+ 
+
+
+
+
+
+
+
+
+
