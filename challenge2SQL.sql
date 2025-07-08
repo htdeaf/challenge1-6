@@ -1,0 +1,222 @@
+-- Database: store_db
+
+-- DROP DATABASE IF EXISTS store_db;
+
+-- Database: store_db
+
+--DROP DATABASE IF EXISTS store_db;
+-- CREATE TABLE customers (
+--     customer_id SERIAL PRIMARY KEY,
+-- 	first_name VARCHAR(100),
+-- 	last_name VARCHAR(100),
+-- 	email VARCHAR(100),
+-- 	phone_number VARCHAR(20)
+-- );
+
+
+-- CREATE TABLE orders (
+--     order_id SERIAL PRIMARY KEY,
+--     customer_id INT  REFERENCES customers(customer_id),--(clé étrangère)
+--     order_date DATE,
+--     total_amount DECIMAL(10, 2)
+-- );
+
+-- CREATE TABLE products (
+-- 	product_id SERIAL PRIMARY KEY,
+-- 	name VARCHAR(100), 
+-- 	price DECIMAL(10, 2), 
+-- 	category VARCHAR(100)
+-- );
+
+-- CREATE TABLE order_items (
+--     item_id SERIAL PRIMARY KEY,
+--     order_id INT REFERENCES orders(order_id),--(clé étrangère)
+--     product_id INT REFERENCES products(product_id),--(clé étrangère)
+--     quantity INT
+-- );
+-- INSERT INTO customers (first_name, last_name, email, phone_number)
+-- VALUES
+-- ('Ahmed', 'Bennani', 'ahmed.bennani@email.com', '0611568491'),
+-- ('Sara', 'El Amrani', 'sara.amrani@email.com', '0678315591'),
+-- ('Youssef', 'Kamal', 'youssef.kamal@email.com', '0650123365'),
+-- ('Amine', 'Ali', 'amine.ali@email.com', '0612305687'),
+-- ('ikram', 'nawi', 'likram.nawi@email.com', '0610562784')
+
+-- INSERT INTO products  (name, price,category)
+-- VALUES
+-- ('Ordinateur Portable', 8500.00, 'Informatique'),
+-- ('Souris Sans Fil', 120.00, 'Accessoires'),
+-- ('Casque Audio', 300.00, 'Audio'),
+-- ('Écran 24 pouces', 1100.00, 'Informatique'),
+-- ('Clavier mécanique Logitech', 450.00, 'Accessoires');
+-- SELECT*FROM products
+-- SELECT * FROM customers;
+-- INSERT INTO orders (customer_id,order_date,total_amount)
+-- VALUES
+-- (1, '2025-07-01', 8500.00),
+-- (1, '2025-07-05', 300.00),
+-- (2, '2025-07-02', 1500.00),
+-- (3, '2025-07-03', 120.00),
+-- (4, '2025-07-04', 950.00),
+-- (5, '2025-07-05', 2300.00);
+-- SELECT * FROM orders;
+-- INSERT INTO order_items (order_id,product_id, quantity)
+-- VALUES
+-- (1, 1, 1),
+-- (2, 3, 1),
+-- (3, 4, 1),
+-- (3, 5, 1),
+-- (4, 2, 1),
+-- (5, 5, 2),
+-- (5, 3, 1),
+-- (6, 1, 1),
+-- (6, 4, 1);
+-- SELECT * FROM order_items;
+-- SELECT * FROM customers
+-- SELECT * FROM orders where order_date > '2024-01-01'
+-- SELECT DISTINCT
+--     c.first_name,
+--     c.last_name,
+--     c.email
+-- FROM customers c
+-- JOIN orders o ON c.customer_id = o.customer_id;
+-- SELECT * FROM customers where first_name='Sara'
+-- SELECT * FROM orders where total_amount=120
+-- SELECT *FROM customers WHERE last_name LIKE 'A%'
+-- UPDATE customers SET phone_number = 0622351451;
+-- UPDATE orders SET total_amount=total_amount*1.10;
+-- Update customers SET email='kamal.youssef@email.com' WHERE email='youssef.kamal@email.com'
+-- DELETE FROM orders WHERE order_date <'2023-07-01'
+
+-- ALTER TABLE orders
+-- DROP CONSTRAINT IF EXISTS orders_customer_id_fkey;
+
+-- ALTER TABLE orders
+-- ADD CONSTRAINT orders_customer_id_fkey
+-- FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+-- ON DELETE CASCADE;
+--3
+-- ALTER TABLE order_items
+-- DROP CONSTRAINT IF EXISTS order_items_order_id_fkey;
+
+-- ALTER TABLE order_items
+-- ADD CONSTRAINT order_items_order_id_fkey
+-- FOREIGN KEY (order_id) REFERENCES orders(order_id)
+-- ON DELETE CASCADE
+
+
+-- DELETE FROM orders WHERE customer_id=3
+-- SELECT
+--     o.order_id,
+--     c.first_name,
+--     c.last_name
+-- FROM customers c
+-- JOIN orders o ON o.customer_id = c.customer_id
+-- SELECT 
+--     c.customer_id,
+--     c.first_name,
+--     c.last_name,
+--     c.email
+-- FROM customers c
+-- LEFT JOIN orders o ON c.customer_id = o.customer_id
+-- WHERE o.order_id IS NULL;
+
+-- SELECT 
+--     c.customer_id,
+--     c.first_name,
+--     c.last_name,
+--     COUNT(o.order_id) AS nombre_commandes
+-- FROM customers c
+-- LEFT JOIN orders o ON c.customer_id = o.customer_id
+-- GROUP BY c.customer_id, c.first_name, c.last_name
+-- ORDER BY nombre_commandes DESC;
+-- SELECT SUM(total_amount) AS montant_total_commandes
+-- FROM orders;
+-- SELECT COUNT(customer_id) AS nombre_de_clients
+-- FROM customers;
+-- SELECT AVG(total_amount) AS montant_moyen_commandes
+-- FROM orders;
+-- SELECT 
+--     c.customer_id,
+--     c.first_name,
+--     c.last_name,
+--     SUM(o.total_amount) AS montant_total_commandes
+-- FROM customers c
+-- JOIN orders o ON c.customer_id = o.customer_id
+-- GROUP BY c.customer_id, c.first_name, c.last_name
+-- ORDER BY montant_total_commandes DESC;
+-- SELECT 
+--     TO_CHAR(order_date, 'YYYY-MM') AS mois,
+--     COUNT(*) AS nombre_commandes
+-- FROM orders
+-- GROUP BY mois
+-- ORDER BY mois;
+
+-- SELECT 
+--     c.customer_id,
+--     c.first_name,
+--     c.last_name,
+--     SUM(o.total_amount) AS montant_total_commandes
+-- FROM customers c
+-- JOIN orders o ON c.customer_id = o.customer_id
+-- GROUP BY c.customer_id, c.first_name, c.last_name
+-- ORDER BY montant_total_commandes DESC;
+-- SELECT 
+--     TO_CHAR(order_date, 'YYYY-MM') AS mois,
+--     AVG(total_amount) AS montant_moyen_commandes
+-- FROM orders
+-- GROUP BY mois
+-- ORDER BY mois;
+-- SELECT 
+--     c.customer_id,
+--     c.first_name,
+--     c.last_name,
+--     SUM(o.total_amount) AS total_commandes
+-- FROM customers c
+-- JOIN orders o ON c.customer_id = o.customer_id
+-- GROUP BY c.customer_id, c.first_name, c.last_name
+-- HAVING SUM(o.total_amount) > 1000
+-- ORDER BY total_commandes DESC;
+-- SELECT DISTINCT
+--     c.customer_id,
+--     c.first_name,
+--     c.last_name
+-- FROM customers c
+-- JOIN orders o ON c.customer_id = o.customer_id
+-- WHERE o.total_amount > 200;
+-- SELECT 
+--     c.customer_id,
+--     c.first_name,
+--     c.last_name,
+--     SUM(o.total_amount) AS total_commandes
+-- FROM customers c
+-- JOIN orders o ON c.customer_id = o.customer_id
+-- GROUP BY c.customer_id, c.first_name, c.last_name
+-- ORDER BY total_commandes DESC
+-- LIMIT 1;
+-- SELECT *
+-- FROM orders
+-- WHERE total_amount > (
+--     SELECT AVG(total_amount) FROM orders
+-- );
+-- CREATE OR REPLACE VIEW customer_orders_view AS
+-- SELECT
+--     c.customer_id,
+--     c.first_name,
+--     c.last_name,
+--     SUM(o.total_amount) AS total_commandes
+-- FROM customers c
+-- JOIN orders o ON c.customer_id = o.customer_id
+-- GROUP BY c.customer_id, c.first_name, c.last_name;
+-- SELECT *
+-- FROM customer_orders_view
+-- WHERE total_commandes > 1000;
+-- CREATE OR REPLACE VIEW monthly_sales_view AS
+-- SELECT 
+--     TO_CHAR(order_date, 'YYYY-MM') AS mois,
+--     SUM(total_amount) AS total_ventes
+-- FROM orders
+-- GROUP BY mois
+-- ORDER BY mois;
+-- SELECT * FROM monthly_sales_view;
+	
