@@ -1,0 +1,175 @@
+
+import os
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Float, DateTime, ForeignKey,select ,insert ,text , join ,update ,func
+from dotenv import load_dotenv
+from datetime import datetime
+
+load_dotenv()
+
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+
+DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+engine = create_engine(DATABASE_URL, echo=True)
+metadata=MetaData()
+
+clients = Table(
+    'clients', metadata,
+    Column('client_id', Integer, primary_key=True),
+    Column('first_name', String(50), nullable=False),
+    Column('last_name', String(50), nullable=False),
+    Column('email', String(100), nullable=False),
+    Column('phone_number', String(20))
+)
+destinations = Table(
+    'destinations', metadata,
+    Column('destination_id', Integer, primary_key=True),
+    Column('name', String(100), nullable=False),
+    Column('country', String(50), nullable=False),
+    Column('price_per_person', Float, nullable=False)
+)
+bookings = Table(
+    'bookings', metadata,
+    Column('booking_id', Integer, primary_key=True),
+    Column('client_id', Integer,ForeignKey('clients.client_id')),
+    Column('booking_date', DateTime, default=datetime.utcnow),
+    Column('total_price', Float, nullable=False)
+)
+booking_items = Table(
+    'booking_items', metadata,
+    Column('item_id', Integer, primary_key=True),
+    Column('booking_id', Integer, ForeignKey('bookings.booking_id'), nullable=False),
+    Column('destination_id', Integer, ForeignKey('destinations.destination_id'), nullable=False),
+    Column('travelers_count', Integer, nullable=False)
+)
+
+metadata.create_all(engine)
+
+
+with engine.connect() as connection:
+    result = connection.execute(text("SELECT version();"))
+    print("Connexion réussie à PostgreSQL :", result.fetchone())
+new_clients = [
+    {"first_name": "Ahmed", "last_name": "Bennani", "email": "ahmed.bennani@email.com", "phone_number": "0611568491"},
+    {"first_name": "Sara", "last_name": "El Amrani", "email": "sara.amrani@email.com", "phone_number": "0678315591"},
+    {"first_name": "Youssef", "last_name": "Kamal", "email": "youssef.kamal@email.com", "phone_number": "0650123365"},
+    {"first_name": "Amine", "last_name": "Ali", "email": "amine.ali@email.com", "phone_number": "0612305687"},
+    {"first_name": "Ikram", "last_name": "Nawi", "email": "ikram.nawi@email.com", "phone_number": "0610562784"},
+]
+
+new_destinations = [
+    {"name": "Marrakech", "country": "Maroc", "price_per_person": 250.0},
+    {"name": "Paris", "country": "France", "price_per_person": 1200.0},
+    {"name": "Istanbul", "country": "Turquie", "price_per_person": 850.0},
+    {"name": "Tokyo", "country": "Japon", "price_per_person": 2500.0},
+    {"name": "New York", "country": "USA", "price_per_person": 2000.0},
+]
+new_bookings = [
+    {"client_id": 1, "booking_date": datetime(2024,6,1), "total_price": 1200.0},
+    {"client_id": 2, "booking_date": datetime(2023, 7, 3), "total_price": 2500.0},
+    {"client_id": 3, "booking_date": datetime(2025, 7, 5), "total_price": 850.0},
+]
+new_booking_items = [
+    {"booking_id": 1, "destination_id": 2, "travelers_count": 2},  # Paris pour client 1
+    {"booking_id": 2, "destination_id": 5, "travelers_count": 3},  # New York pour client 2
+    {"booking_id": 2, "destination_id": 1, "travelers_count": 1},  # Marrakech aussi
+    {"booking_id": 3, "destination_id": 3, "travelers_count": 2},  # Istanbul pour client 3
+]
+with engine.begin() as conn:
+    conn.execute(insert(clients),new_clients)
+    conn.execute(insert(destinations),new_destinations)
+    conn.execute(insert(bookings),new_bookings)
+    conn.execute(insert(booking_items), new_booking_items)
+    print("donnés insérées avec succès")
+with engine.connect() as conn:
+    result_clients=conn.execute(select(clients))
+    for row in result_clients:
+        print(row)
+    result_dest=conn.execute(select(destinations).where(destinations.c.price_per_person>1000))
+    for row in result_dest:
+        print(row)
+
+réservations = (
+    select(
+        clients.c.first_name,
+        clients.c.last_name,
+        destinations.c.country,
+        booking_items.c.travelers_count,
+        destinations.c.name,
+        destinations.c.price_per_person
+
+    )
+    .select_from(
+        clients
+        .join(bookings,clients.c.client_id ==bookings.c.client_id)
+        .join(booking_items,bookings.c.booking_id==booking_items.c.booking_id)
+        .join(destinations, booking_items.c.destination_id == destinations.c.destination_id)
+
+    )
+)
+ 
+with engine.connect() as conn:
+    result = conn.execute(réservations)
+    for row in result:
+        print(row)
+
+with engine.begin() as conn:
+    stmt=(
+        update(clients).where(clients.c.client_id==3).values(email="saidfasih1@gmail.com")
+          )
+    conn.execute(stmt)
+    print("Numéro de téléphone mis à jour")
+with engine.begin() as conn:
+    stmt=(update(destinations).where(destinations.c.country=="Maroc").values(price_per_person= destinations.c.price_per_person*0.90))
+    conn.execute(stmt)
+    print("Numéro de téléphone mis à jour")
+with engine.connect() as conn:
+    result1=conn.execute(select(func.sum(clients.c.client_id))).scalar()
+    print(result1)
+with engine.connect() as conn:
+    result2=conn.execute(select(func.avg(destinations.c.price_per_person))).scalar()
+    print(result2)
+with engine.connect() as conn:
+    result3=conn.execute(select(func.sum(booking_items.c.travelers_count))).scalar()
+    print(result3)
+
+# query = (
+#     select(
+#         destinations.c.name,
+#         func.count(booking_items.c.destination_id).label("nb_reservations")
+#     )
+#     .select_from(
+#         booking_items.join(destinations, booking_items.c.destination_id == destinations.c.destination_id)
+#     )
+#     .group_by(destinations.c.name)
+#     .having(func.count(booking_items.c.destination_id) > 2)
+# )
+
+# with engine.connect() as conn:
+#     result = conn.execute(query)
+#     print("Destinations réservées plus de 2 fois :")
+#     for row in result:
+#         print(row)
+# query = (
+#     select(
+#         clients.c.first_name,
+#         clients.c.last_name,
+#         func.sum(booking_items.c.travelers_count).label("total_voyageurs")
+#     )
+#     .select_from(
+#         clients
+#         .join(bookings, clients.c.client_id == bookings.c.client_id)
+#         .join(booking_items, bookings.c.booking_id == booking_items.c.booking_id)
+#     )
+#     .group_by(clients.c.client_id)
+#     .having(func.sum(booking_items.c.travelers_count) > 5)
+# )
+
+# with engine.connect() as conn:
+#     result = conn.execute(query)
+#     print("Clients avec plus de 5 voyageurs au total :")
+#     for row in result:
+#         print(row)
